@@ -12,6 +12,7 @@ local getDefaultInstanceProperty = require(script.Parent.getDefaultInstancePrope
 local Ref = require(script.Parent.PropMarkers.Ref)
 local Type = require(script.Parent.Type)
 local internalAssert = require(script.Parent.internalAssert)
+local assign = require(script.Parent.assign)
 
 local config = require(script.Parent.GlobalConfig).get()
 
@@ -51,8 +52,13 @@ end
 local function setRobloxInstanceProperty(hostObject, key, newValue)
 	if newValue == nil then
 		local hostClass = hostObject.ClassName
-		local _, defaultValue = getDefaultInstanceProperty(hostClass, key)
-		newValue = defaultValue
+		local defaultProps = config.defaultHostProps[hostClass]
+		if defaultProps and defaultProps[key] then
+			newValue = defaultProps[key]
+		else
+			local _, defaultValue = getDefaultInstanceProperty(hostClass, key)
+			newValue = defaultValue
+		end
 	end
 
 	-- Assign the new value to the object
@@ -192,7 +198,8 @@ function RobloxRenderer.mountHostNode(reconciler, virtualNode)
 	virtualNode.hostObject = instance
 
 	local success, errorMessage = xpcall(function()
-		applyProps(virtualNode, element.props)
+		local propsWithDefault = assign({}, config.defaultHostProps[element.component], element.props)
+		applyProps(virtualNode, propsWithDefault)
 	end, identity)
 
 	if not success then

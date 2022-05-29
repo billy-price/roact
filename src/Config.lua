@@ -22,6 +22,7 @@ local defaultConfig = {
 	["elementTracing"] = false,
 	-- Enables validation of component props in stateful components.
 	["propValidation"] = false,
+	["defaultHostProps"] = {},
 }
 
 -- Build a list of valid configuration values up for debug messages.
@@ -80,8 +81,8 @@ function Config:set(configValues)
 			error(message, 3)
 		end
 
-		-- Right now, all configuration values must be boolean.
-		if typeof(value) ~= "boolean" then
+		-- Right now, all configuration values must be boolean (except defaultHostProps).
+		if key ~= "defaultHostProps" and typeof(value) ~= "boolean" then
 			local message = (
 				"Invalid value %q (type %s) for global configuration key %q. Valid values are: true, false"
 			):format(tostring(value), typeof(value), tostring(key))
